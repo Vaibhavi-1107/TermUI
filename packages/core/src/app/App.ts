@@ -70,6 +70,8 @@ export class App {
     private _options: AppOptions;
     private _mounted = false;
     private _exitResolve: ((code: number) => void) | null = null;
+    private _unsubKey: (() => void) | null = null;
+    private _unsubMouse: (() => void) | null = null;
 
     constructor(rootWidget: RootWidget, options: AppOptions = {}) {
         this._rootWidget = rootWidget;
@@ -133,7 +135,7 @@ export class App {
         this.input.start();
 
         // Forward key events with bubble dispatch
-        this.input.onKey((rawEvent) => {
+        this._unsubKey = this.input.onKey((rawEvent) => {
             const event = createKeyEvent({
                 ...rawEvent,
                 targetId: this.focus.currentId ?? undefined,
@@ -167,7 +169,7 @@ export class App {
         });
 
         // Forward mouse events
-        this.input.onMouse((event) => {
+        this._unsubMouse = this.input.onMouse((event) => {
             this.events.emit('mouse', event);
         });
 
@@ -197,6 +199,11 @@ export class App {
 
         this._rootWidget.unmount?.();
         this.events.emit('unmount', undefined as any);
+
+        this._unsubKey?.();
+        this._unsubKey = null;
+        this._unsubMouse?.();
+        this._unsubMouse = null;
 
         this.renderer.stop();
         this.input.stop();
