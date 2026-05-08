@@ -339,5 +339,6 @@ export abstract class Widget {
             child.unmount();
         }
         this.events.emit('unmount', undefined as any);
+        this.events.removeAll();
     }
 }
