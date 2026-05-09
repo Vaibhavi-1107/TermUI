@@ -190,25 +190,39 @@ export function useHttpHealth(
         typeof e === 'string' ? { name: e, url: e } : e,
     );
 
+    // Stable string key derived from endpoint identities — avoids the
+    // cost of JSON.stringify on every render and prevents spurious
+    // effect re-runs when the array reference changes but content is the same.
+    const endpointKey = normalised
+        .map(e => `${e.name}::${e.url}`)
+        .join('|');
+
     const [results, setResults] = useState<HealthResult[]>([]);
 
     useEffect(() => {
-        let cancelled = false;
+        const controller = new AbortController();
+        let mounted = true;
 
-        const run = () => {
-            http.checkAll(normalised).then(r => {
-                if (!cancelled) setResults(r);
-            }).catch(() => { /* silently ignore network errors */ });
+        const check = async () => {
+            try {
+                const r = await http.checkAll(normalised, controller.signal);
+                if (mounted) setResults(r);
+            } catch {
+                // Ignore errors caused by the cleanup abort or genuine network failures.
+                if (!mounted || controller.signal.aborted) return;
+            }
         };
 
-        run(); // immediate first fetch
+        check(); // immediate first fetch
 
-        const id = setInterval(run, intervalMs);
+        const id = setInterval(check, intervalMs);
         return () => {
-            cancelled = true;
+            mounted = false;
+            controller.abort();
             clearInterval(id);
         };
-    }, [intervalMs, JSON.stringify(normalised)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [endpointKey, intervalMs]);
 
     return results;
 }

@@ -23,13 +23,20 @@ const MAX_URLS = 100;
 export const http = {
     /**
      * Ping a URL and return health status + latency.
+     * An optional AbortSignal can be passed to cancel the request early.
      */
-    async ping(url: string): Promise<HealthResult> {
+    async ping(url: string, signal?: AbortSignal): Promise<HealthResult> {
         const start = Date.now();
         try {
+            // Combine the caller's signal with a 5-second timeout signal so
+            // either source can abort the request.
+            const timeoutSignal = AbortSignal.timeout(5000);
+            const combinedSignal = signal
+                ? AbortSignal.any([signal, timeoutSignal])
+                : timeoutSignal;
             const res = await fetch(url, {
                 method: 'GET',
-                signal: AbortSignal.timeout(5000),
+                signal: combinedSignal,
             });
             // Consume response body to prevent connection leaks
             await res.text().catch(() => { });
@@ -69,11 +76,12 @@ export const http = {
 
     /**
      * Check multiple endpoints and return results for a table.
+     * An optional AbortSignal can be passed to cancel all in-flight requests.
      */
-    async checkAll(endpoints: Endpoint[]): Promise<HealthResult[]> {
+    async checkAll(endpoints: Endpoint[], signal?: AbortSignal): Promise<HealthResult[]> {
         const results = await Promise.all(
             endpoints.map(async (ep) => {
-                const result = await http.ping(ep.url);
+                const result = await http.ping(ep.url, signal);
                 result.name = ep.name;
                 return result;
             }),
