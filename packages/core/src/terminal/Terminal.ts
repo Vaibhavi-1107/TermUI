@@ -209,8 +209,6 @@ export class Terminal {
 
         this._uncaughtExceptionHandler = (err: Error) => {
             this.restore();
-            // Remove handler to prevent recursion, then re-throw
-            process.off('uncaughtException', this._uncaughtExceptionHandler!);
             throw err;
         };
         this._unhandledRejectionHandler = () => {

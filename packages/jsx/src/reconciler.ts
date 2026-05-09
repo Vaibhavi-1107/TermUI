@@ -8,6 +8,7 @@
 
 import { Box, Text, Widget, ProgressBar, Grid, Skeleton } from '@termuijs/widgets';
 import type { Style, Color } from '@termuijs/core';
+import { parseColor } from '@termuijs/core';
 import type { VNode, VElement, FC } from './vnode.js';
 import { isVElement, isVFragment, Fragment, flattenChildren } from './vnode.js';
 import {
@@ -147,10 +148,11 @@ function extractStyle(props: Record<string, any>): Partial<Style> {
     return style;
 }
 
-/** Parse a color prop — accepts a string name or a Color object */
+/** Parse a color prop — accepts a named color string, hex string, or Color object */
 function parseColorProp(value: any): Color | undefined {
     if (!value) return undefined;
     if (typeof value === 'string') {
+        if (value.startsWith('#')) return parseColor(value);
         return { type: 'named', name: value as any };
     }
     return value as Color;
