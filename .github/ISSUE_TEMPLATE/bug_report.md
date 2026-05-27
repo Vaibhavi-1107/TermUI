@@ -1,29 +1,41 @@
 ---
-name: Bug report
-about: Something isn't working as expected
+name: 🐛 Bug report
+about: Something is not working as expected
 title: "[bug] "
-labels: bug
+labels: ["type:bug"]
 assignees: ''
 ---
 
-**Which package?**
-<!-- e.g. @termuijs/core, @termuijs/widgets, @termuijs/jsx -->
+<!-- Search existing issues first. Run on the latest version. -->
 
-**What happened?**
-<!-- Describe the bug clearly. What did you expect vs what actually happened? -->
+## Which package?
 
-**Steps to reproduce**
-<!-- Minimal code or steps to trigger the bug -->
+<!-- Example: @termuijs/core, @termuijs/widgets, @termuijs/jsx -->
+
+## What happened?
+
+<!-- Describe the bug. What you expected vs. what happened. -->
+
+## Steps to reproduce
+
+<!-- Minimal code or steps to trigger the bug. -->
 
 ```typescript
 // paste your code here
 ```
 
-**Environment**
-- Node.js version:
+## Environment
+
+- Bun version: <!-- bun --version -->
 - OS:
 - Terminal emulator:
 - TermUI version:
 
-**Screenshots or terminal output**
-<!-- If applicable, paste the terminal output or attach a screenshot -->
+## Screenshots or terminal output
+
+<!-- Paste terminal output or attach a screenshot if useful. -->
+
+## GSSoC contributor?
+
+- [ ] Yes. You contribute under GSSoC 2026.
+- [ ] No.

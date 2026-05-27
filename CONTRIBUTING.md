@@ -1,18 +1,31 @@
 # Contributing to TermUI
 
-Thanks for considering a contribution. Whether it's a bug fix, a new widget, improved docs, or a typo — it all helps.
+Thanks for your contribution. Bug fixes, new widgets, improved docs, typo fixes. All of it helps.
+
+> 🎯 **GSSoC 2026 contributors:** jump to the [GSSoC section](#gssoc-2026) below. Read it before you open any PR.
 
 ## Getting started
 
 ```bash
 git clone https://github.com/Karanjot786/TermUI.git
 cd TermUI
-pnpm install
-pnpm run build
-pnpm test
+bun install
+bun run build
+bun run test
 ```
 
-You need Node.js 18+ and pnpm. The project is a pnpm workspace monorepo with 13 packages under `packages/`.
+You need **Bun 1.3 or newer**. The project is a Bun workspace monorepo with 13 packages under `packages/`. Node 18+ matters only if you consume published `@termuijs/*` packages from npm. Development is Bun-only.
+
+## Two-repo layout
+
+Framework code lives here. Docs site lives in a separate repo.
+
+| Repo | Contents | Where to send your PR |
+|------|----------|------------------------|
+| **TermUI** (this repo) | 13 packages, examples, tests, scaffolding CLI | Bug fixes, new widgets, hooks, refactors, tests |
+| **TermUI_Docs** | [termui.io](https://www.termui.io) source: Vite + TanStack + MDX content | Doc typos, new doc pages, website UI changes |
+
+[TermUI_Docs on GitHub](https://github.com/Karanjot786/TermUI_Docs). GSSoC 2026 counts only on **this** repo; the docs repo does not participate.
 
 ## Project structure
 
@@ -28,87 +41,81 @@ packages/
   motion/            Spring animations
   data/              System monitoring (CPU, memory, disk, processes)
   testing/           In-memory test renderer
-  dev-server/        Hot-reload dev server
+  dev-server/        Hot-reload dev server (uses Bun.spawn)
   quick/             Fluent builder API
   create-termui-app/ Project scaffolding CLI
-website/             Documentation site (Vite + TanStack Router)
 examples/            Working example apps
 ```
 
+API docs for each package live on https://www.termui.io. Edit those pages in [TermUI_Docs](https://github.com/Karanjot786/TermUI_Docs).
+
 ## Before you write code
 
-1. **Check existing issues.** Someone might already be working on it.
-2. **Open an issue first** for anything larger than a small fix. Describe what you want to change and why. This saves everyone time if the approach needs discussion.
-3. **One pull request per change.** Don't bundle unrelated fixes together.
+1. **Check existing issues.** Someone might already work on it.
+2. **Open an issue first** for anything larger than a small fix. Describe your change and your reason. Saves everyone time if the approach needs discussion.
+3. **One pull request per change.** Do not bundle unrelated fixes.
 
 ## Writing code
 
 ### Style
 
-- TypeScript strict mode. No `any` unless absolutely unavoidable (and if you use it, leave a comment explaining why).
-- No external runtime dependencies in `@termuijs/core`. The core must stay dependency-free.
-- Use `node:` prefix for built-in modules (`import { readFileSync } from 'node:fs'`).
-- Every state-mutating method on a widget must call `this.markDirty()`.
+- TypeScript strict mode. No `any` without an inline comment explaining why.
+- No external runtime dependencies in `@termuijs/core`. The core stays dependency-free.
+- Use `node:` prefix for built-in modules. Example: `import { readFileSync } from 'node:fs'`.
+- Every state-mutating method on a widget calls `this.markDirty()`.
 
 ### Tests
 
-Every package uses [Vitest](https://vitest.dev/). Tests live next to source files (`foo.ts` → `foo.test.ts`).
+Every package uses [Vitest](https://vitest.dev/). Tests live next to source files. Example: `foo.ts` plus `foo.test.ts`.
 
 ```bash
 # Run all tests
-pnpm test
+bun run test
 
 # Run tests for a single package
-pnpm vitest run packages/core
+bun vitest run packages/core
+
+# Run a single test file
+bun vitest run packages/widgets/src/data/Gauge.test.ts
 
 # Watch mode
-pnpm test:watch
+bun run test:watch
 ```
 
-If you're adding a new widget or fixing a bug, add a test. If you don't know how to test something, look at existing tests in the same package for patterns.
+Add a test when you add a widget or fix a bug. Look at existing tests in the same package for patterns.
 
 ### Building
 
 ```bash
 # Build all packages
-pnpm run build
+bun run build
 
 # Build a single package
-cd packages/core && pnpm run build
+cd packages/core && bun run build
 ```
 
-Each package uses tsup. The output goes to `dist/` with both ESM and CJS formats.
-
-### Scratch scripts
-
-The `scratch/` directory has runnable scripts that exercise each package. These are useful for manual testing:
-
-```bash
-npx tsx scratch/1-core.ts
-npx tsx scratch/5-store.ts
-```
-
-If you're fixing a bug, consider writing a scratch script that reproduces it first.
+Each package uses tsup. Output goes to `dist/` with both ESM and CJS formats. Published artifacts run on Node 18+ and Bun.
 
 ## Pull request process
 
-1. Fork the repo and create a branch from `main`.
-2. Make your changes.
-3. Run `pnpm run build && pnpm test` — both must pass.
-4. Write a clear PR description. Explain *what* changed and *why*.
-5. If you're fixing a bug from the issue tracker, reference the issue number.
+1. Fork the repo. Create a branch from `main`. Branch name: `type/short-description`. Example: `fix/empty-list-crash`.
+2. **⭐ Star the repo** before you open your PR. The `star-check` job fails otherwise.
+3. Make your changes.
+4. Run `bun run build && bun run test && bun run typecheck`. All three pass.
+5. Write your PR title in the form `type: short description`. Example: `fix: handle empty list in VirtualList`.
+6. Link your issue: `Closes #123` in the PR body.
 
-We'll review within a few days. Small PRs get reviewed faster than large ones.
+You get a review within 48 hours. Small PRs review faster.
 
-## What we look for in reviews
+## What reviewers look for
 
-- **Does it break existing tests?** If `pnpm test` fails, the PR won't merge.
-- **Is there a test for the change?** Bug fixes need a test that would have caught the bug. New features need coverage for the happy path and at least one edge case.
-- **Does it match the existing code style?** Read a few files in the same package to get a feel for the patterns.
-- **Are there `markDirty()` calls?** Any widget method that changes visible state needs to call `markDirty()` so the render loop picks it up.
-- **Is the commit message clear?** Use the format: `fix(core): prevent layout overflow on zero-width box` or `feat(widgets): add BarChart widget`.
+- **Does it break existing tests?** A failing `bun run test` blocks merge.
+- **Is there a test for your change?** Bug fixes need a test that would have caught the bug. New features need happy-path coverage and one edge case.
+- **Does it match existing style?** Read a few files in the same package first.
+- **Are there `markDirty()` calls?** Any widget method you write that changes visible state calls `markDirty()`.
+- **Is your commit message clear?** Use: `fix(core): prevent layout overflow on zero-width box` or `feat(widgets): add BarChart widget`.
 
-## Commit message format
+## Commit / PR title format
 
 ```
 type(scope): short description
@@ -118,27 +125,122 @@ Longer explanation if needed.
 Fixes #123
 ```
 
-Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`
+**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `style`, `a11y`, `ci`, `build`, `security`
 
-Scopes: `core`, `widgets`, `ui`, `jsx`, `store`, `tss`, `router`, `motion`, `data`, `testing`, `dev-server`, `quick`, `create-termui-app`, `website`
+**Scopes:** `core`, `widgets`, `ui`, `jsx`, `store`, `tss`, `router`, `motion`, `data`, `testing`, `dev-server`, `quick`, `create-termui-app`, `examples` (the `website` scope lives in the separate [TermUI_Docs](https://github.com/Karanjot786/TermUI_Docs) repo)
+
+The CI workflow auto-applies a `type:*` label from your PR title prefix. The label counts toward your GSSoC points.
 
 ## Adding a new widget
 
-1. Create the file in the right package (`packages/widgets/src/` for base widgets, `packages/ui/src/` for compound ones).
+1. Create your file in the right package. `packages/widgets/src/` for base widgets. `packages/ui/src/` for compound widgets.
 2. Extend the `Widget` base class from `@termuijs/core`.
 3. Implement `_renderSelf(screen: Screen)`.
-4. Call `this.markDirty()` in every method that changes visual state.
-5. Export from the package's `index.ts`.
-6. Add tests.
-7. Add a doc page in `website/src/content/` and register it in `pages.ts`.
+4. Call `this.markDirty()` in every method you write that changes visual state.
+5. Add a `caps.unicode` fallback if you use non-ASCII characters.
+6. Add a `caps.motion` guard if your widget animates.
+7. Export from the package's `index.ts`.
+8. Add tests. See `packages/widgets/src/data/Gauge.test.ts` for the pattern.
+9. Add a doc page. The doc site lives in a separate repo: [TermUI_Docs](https://github.com/Karanjot786/TermUI_Docs). Create your MDX in `src/content/`. Register it in `src/content/pages.ts`. Open the PR there.
 
 ## Adding a new theme
 
-1. Create a `.tss` file in `packages/tss/src/themes/`.
+1. Create your `.tss` file in `packages/tss/src/themes/`.
 2. Add the theme name to `BUILTIN_THEMES` in `packages/tss/src/themes/index.ts`.
 3. Update the theme count in `packages/tss/package.json` and `packages/tss/README.md`.
 4. Update the TSS docs page.
 
+---
+
+# GSSoC 2026
+
+TermUI participates in **GSSoC 2026**. Contribution window: 15 May to 14 August 2026. Below are the rules. Follow them to earn points.
+
+## Step 1: star the repo
+
+This is **required**. PRs from contributors who do not star the repo fail the `star-check` job. The bot comments a reminder.
+
+Star the repo, push any commit (or re-run the workflow), and the `needs-star` label lifts automatically.
+
+## Step 2: pick a good first issue
+
+Browse [open good-first-issues](https://github.com/Karanjot786/TermUI/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+
+Claim one. Comment:
+
+> I would like to work on this
+
+The bot assigns you. You have **7 days** to open your PR. After that the issue frees up.
+
+## Step 3: open your PR
+
+1. Branch name: `type/short-description`.
+2. PR title: `type: short description`.
+3. Link your issue in the body: `Closes #N`.
+4. Fill in the PR template. Every section.
+5. All checks pass: `build`, `test`, `typecheck`, `star-check`, `auto-label`.
+
+## Step 4: how points work
+
+Every approved PR earns points from labels. Your reviewer sets `gssoc:approved` plus `level:*` plus `quality:*` after review. `type:*` auto-applies from your PR title.
+
+| Label | Effect |
+|-------|--------|
+| `gssoc:approved` | +50 base points. Required for any credit. |
+| `level:beginner` | +20 difficulty |
+| `level:intermediate` | +35 difficulty |
+| `level:advanced` | +55 difficulty |
+| `level:critical` | +80 difficulty |
+| `quality:clean` | x 1.2 multiplier |
+| `quality:exceptional` | x 1.5 multiplier |
+| `type:docs` | +5 |
+| `type:bug`, `type:feature`, `type:testing`, `type:design`, `type:refactor` | +10 |
+| `type:accessibility`, `type:performance`, `type:devops` | +15 |
+| `type:security` | +20 |
+
+**Formula:** `50 + (difficulty x quality_multiplier) + type_bonus`
+
+**Example:** `gssoc:approved` + `level:intermediate` + `quality:clean` + `type:feature` = `50 + (35 x 1.2) + 10 = 102 pts`.
+
+## Step 5: avoid disqualification
+
+These labels mean **zero points** and lead to disqualification:
+
+- `gssoc:invalid`. Your PR violates rules. Example: no linked issue, broken build, no tests, missing template fields.
+- `gssoc:spam`. Duplicate, low-effort, or trivial change.
+- `gssoc:ai-slop`. Generated content with no real engagement. Broken code or fabricated reasoning.
+
+**Do not:**
+- Submit a PR without claiming the issue first.
+- Open multiple PRs for the same issue.
+- Use AI to generate code you do not understand.
+- Open PRs that only change whitespace or comments.
+- Bundle unrelated changes.
+
+**Do:**
+- Engage with mentor feedback.
+- Test your code locally before you open your PR.
+- Read the existing code in your area.
+- Ask questions on the [GSSoC Discord](https://gssoc.girlscript.org/getting-started) when stuck.
+
+## Reaching your mentor
+
+- **Quick questions:** GSSoC Discord, project channel, tag `@Karanjot786`.
+- **PR-specific questions:** comment on your PR with the exact line and error.
+- **Long-form or career:** LinkedIn.
+
+Format your question: *"Hi, I am stuck on issue #42. Tried approach Y. Got error Z."* Specific question = fast answer. "I'm stuck" = no answer.
+
+## Weekly rhythm
+
+| Day | Action |
+|-----|--------|
+| **Monday** | Pick one issue you finish this week. Claim it. |
+| **Wednesday** | Open your PR. Ping your mentor if stuck. |
+| **Sunday** | Check your rank on the GSSoC leaderboard. Plan next week. |
+
+---
+
 ## Questions?
 
-Open an issue or start a discussion. There are no stupid questions — the codebase has 13 packages and a lot of moving parts. Asking first is always better than guessing.
+Open an issue or start a discussion. No question is stupid. The codebase has 13 packages and a lot of moving parts. Ask first, guess later.
