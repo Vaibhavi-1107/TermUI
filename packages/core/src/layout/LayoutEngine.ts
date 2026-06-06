@@ -60,6 +60,15 @@ export function computeLayout(root: LayoutNode, containerWidth: number, containe
     }
     root.computed = { x: 0, y: 0, width: containerWidth, height: containerHeight };
     layoutNode(root, containerWidth, containerHeight);
+    root.computed.width = containerWidth;
+    root.computed.height = containerHeight;
+}
+
+export function invalidateLayout(node: LayoutNode): void {
+    node._dirty = true;
+    for (const child of node.children) {
+        invalidateLayout(child);
+    }
 }
 function hasDirtyChild(node: LayoutNode): boolean {
     if (node._dirty) return true;
@@ -69,6 +78,8 @@ function hasDirtyChild(node: LayoutNode): boolean {
     return false;
 }
 function layoutNode(node: LayoutNode, availWidth: number, availHeight: number, precomputed = false): void {
+    if (!node._dirty) return;
+
     const style = node.style;
     const padding = normalizeEdges(style.padding);
     const margin = normalizeEdges(style.margin);

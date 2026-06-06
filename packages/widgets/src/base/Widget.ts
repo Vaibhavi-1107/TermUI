@@ -144,9 +144,13 @@ export abstract class Widget {
         const childNodes = this._children
             .filter(c => c.style.visible !== false)
             .map(c => c.getLayoutNode());
-        const isDirty = this._dirty;
-        this._layoutNode = createLayoutNode(this.id, this._style, childNodes);
-        this._layoutNode._dirty = isDirty;
+
+        if (this._layoutNode) {
+            this._layoutNode.style = this._style;
+            this._layoutNode.children = childNodes;
+        } else {
+            this._layoutNode = createLayoutNode(this.id, this._style, childNodes);
+        }
         return this._layoutNode;
     }
 
@@ -217,6 +221,9 @@ export abstract class Widget {
     markDirty(): void {
         if (this._dirty) return; // Already dirty
         this._dirty = true;
+        if (this._layoutNode) {
+            this._layoutNode._dirty = true;
+        }
         this.parent?.markDirty();
     }
 
