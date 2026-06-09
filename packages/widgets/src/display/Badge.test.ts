@@ -160,4 +160,23 @@ describe('Badge', () => {
             warnSpy.mockRestore();
         }
     });
+
+    it('does not mark dirty when text is unchanged', () => {
+        const badge = new Badge('same');
+    
+        badge.clearDirty();
+        badge.setText('same');
+    
+        expect(badge.isDirty).toBe(false);
+    });
+    
+    it('does not mark dirty when variant is unchanged', () => {
+        const badge = new Badge('ok', {}, { variant: 'success' });
+    
+        badge.clearDirty();
+        badge.setVariant('success');
+    
+        expect(badge.isDirty).toBe(false);
+    });
+
 });
