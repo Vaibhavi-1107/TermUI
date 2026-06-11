@@ -182,48 +182,48 @@ describe('Accordion', () => {
         it('enter key toggles focused section', () => {
             const accordion = makeAccordion();
             expect(accordion.isOpen(0)).toBe(true);
-            accordion.handleKey('enter');
+            accordion.handleKey({ key: 'enter', ctrl: false, alt: false } as any);
             expect(accordion.isOpen(0)).toBe(false);
         });
 
         it('space key toggles focused section', () => {
             const accordion = makeAccordion();
-            accordion.handleKey('space');
+            accordion.handleKey({ key: 'space', ctrl: false, alt: false } as any);
             expect(accordion.isOpen(0)).toBe(false);
         });
 
         it('down key moves focus to next section', () => {
             const accordion = makeAccordion();
             expect(accordion.getFocusedIndex()).toBe(0);
-            accordion.handleKey('down');
+            accordion.handleKey({ key: 'down', ctrl: false, alt: false } as any);
             expect(accordion.getFocusedIndex()).toBe(1);
         });
 
         it('up key moves focus to previous section', () => {
             const accordion = makeAccordion();
-            accordion.handleKey('down');
-            accordion.handleKey('up');
+            accordion.handleKey({ key: 'down', ctrl: false, alt: false } as any);
+            accordion.handleKey({ key: 'up', ctrl: false, alt: false } as any);
             expect(accordion.getFocusedIndex()).toBe(0);
         });
 
         it('up key does not go below 0', () => {
             const accordion = makeAccordion();
-            accordion.handleKey('up');
+            accordion.handleKey({ key: 'up', ctrl: false, alt: false } as any);
             expect(accordion.getFocusedIndex()).toBe(0);
         });
 
         it('down key does not exceed last index', () => {
             const accordion = makeAccordion();
-            accordion.handleKey('down');
-            accordion.handleKey('down');
-            accordion.handleKey('down');
+            accordion.handleKey({ key: 'down', ctrl: false, alt: false } as any);
+            accordion.handleKey({ key: 'down', ctrl: false, alt: false } as any);
+            accordion.handleKey({ key: 'down', ctrl: false, alt: false } as any);
             expect(accordion.getFocusedIndex()).toBe(2);
         });
 
         it('other keys are ignored', () => {
             const accordion = makeAccordion();
             const before = accordion.getFocusedIndex();
-            accordion.handleKey('a');
+            accordion.handleKey({ key: 'a', ctrl: false, alt: false } as any);
             expect(accordion.getFocusedIndex()).toBe(before);
         });
     });
@@ -251,6 +251,7 @@ describe('Accordion', () => {
     describe('7. Height updates', () => {
         it('increases height when a section is opened', () => {
             const accordion = makeAccordion(SECTIONS, { openIndex: -1 });
+            // _style.height is set dynamically by _updateHeight(); cast needed for numeric comparison
             const before = accordion['_style'].height as number;
             accordion.open(0);
             expect(accordion['_style'].height).toBeGreaterThan(before);
@@ -258,6 +259,7 @@ describe('Accordion', () => {
 
         it('decreases height when a section is closed', () => {
             const accordion = makeAccordion();
+            // _style.height is set dynamically by _updateHeight(); cast needed for numeric comparison
             const before = accordion['_style'].height as number;
             accordion.close(0);
             expect(accordion['_style'].height).toBeLessThan(before);

@@ -9,10 +9,10 @@
 import {
     type Screen,
     type Style,
+    type KeyEvent,
     styleToCellAttrs,
     truncate,
     caps,
-    normalizeNavigationKey,
 } from '@termuijs/core';
 import { Widget } from '../base/Widget.js';
 
@@ -45,6 +45,12 @@ export interface AccordionOptions {
  *
  * Press Enter or Space to toggle the focused section.
  * Press up/down arrow keys to move between sections.
+ *
+ * @example
+ * const accordion = new Accordion([
+ *   { title: 'System Info', content: 'CPU: 45%\nRAM: 2.1 GB' },
+ *   { title: 'Network',     content: 'eth0: 192.168.1.1' },
+ * ]);
  */
 export class Accordion extends Widget {
     private _sections: AccordionSection[];
@@ -83,7 +89,7 @@ export class Accordion extends Widget {
 
     // ── Public API ──────────────────────────────────────────────────────
 
-    /** Open a section by index. */
+    /** Open a section by index. No-op if already open or index out of bounds. */
     open(index: number): void {
         if (index < 0 || index >= this._sections.length) return;
         if (this._openSet.has(index)) return;
@@ -94,7 +100,7 @@ export class Accordion extends Widget {
         this.markDirty();
     }
 
-    /** Close a section by index. */
+    /** Close a section by index. No-op if already closed. */
     close(index: number): void {
         if (!this._openSet.has(index)) return;
         this._openSet.delete(index);
@@ -103,7 +109,7 @@ export class Accordion extends Widget {
         this.markDirty();
     }
 
-    /** Toggle a section by index. */
+    /** Toggle a section open or closed by index. */
     toggle(index: number): void {
         if (this._openSet.has(index)) {
             this.close(index);
@@ -112,17 +118,17 @@ export class Accordion extends Widget {
         }
     }
 
-    /** Check if a section is open. */
+    /** Returns true if the section at the given index is open. */
     isOpen(index: number): boolean {
         return this._openSet.has(index);
     }
 
-    /** Get the currently focused section index. */
+    /** Returns the index of the currently keyboard-focused section. */
     getFocusedIndex(): number {
         return this._focusedIndex;
     }
 
-    /** Replace all sections and reset state. */
+    /** Replace all sections and reset open/focus state. */
     setSections(sections: AccordionSection[]): void {
         this._sections = sections;
         this._openSet.clear();
@@ -134,9 +140,12 @@ export class Accordion extends Widget {
 
     // ── Keyboard ────────────────────────────────────────────────────────
 
-    handleKey(key: string): void {
-        const normalized = normalizeNavigationKey(key.toLowerCase());
-        switch (normalized) {
+    /**
+     * Handle a key event. Call this from your app's key-routing logic
+     * when this widget is focused.
+     */
+    handleKey(event: KeyEvent): void {
+        switch (event.key.toLowerCase()) {
             case 'enter':
             case ' ':
             case 'space':
@@ -161,6 +170,7 @@ export class Accordion extends Widget {
 
     // ── Render ──────────────────────────────────────────────────────────
 
+    /** Render all sections with their open/closed state. */
     protected _renderSelf(screen: Screen): void {
         const rect = this._getContentRect();
         const { x, y, width, height } = rect;
