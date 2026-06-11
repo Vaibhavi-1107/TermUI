@@ -194,6 +194,9 @@ export type { LinkOptions } from './display/Link.js';
 export { ShortcutBar } from './display/ShortcutBar.js';
 export type { ShortcutItem, ShortcutBarOptions } from './display/ShortcutBar.js';
 
+export { Accordion } from './display/Accordion.js';
+export type { AccordionSection, AccordionOptions } from './display/Accordion.js';
+
 
 // ── Missing layout elements restored ──
 export { QRCodePattern, QRCode } from './display/QRCode.js';
