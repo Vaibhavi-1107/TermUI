@@ -200,6 +200,9 @@ export type { ShortcutItem, ShortcutBarOptions } from './display/ShortcutBar.js'
 export { Accordion } from './display/Accordion.js';
 export type { AccordionSection, AccordionOptions } from './display/Accordion.js';
 
+export { Stepper } from './display/Stepper.js';
+export type { StepperStep, StepperOptions, StepStatus, StepperOrientation } from './display/Stepper.js';
+
 
 // ── Missing layout elements restored ──
 export { QRCodePattern, QRCode } from './display/QRCode.js';
