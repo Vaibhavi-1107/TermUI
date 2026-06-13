@@ -4,6 +4,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { Screen, caps } from '@termuijs/core';
+import type { KeyEvent } from '@termuijs/core';
 import { Accordion, type AccordionSection } from './Accordion.js';
 
 // ── Helpers ───────────────────────────────────────────
@@ -13,6 +14,10 @@ const SECTIONS: AccordionSection[] = [
     { title: 'Network',     content: 'eth0: 192.168.1.1' },
     { title: 'Processes',   content: 'nginx\nnode\nbun' },
 ];
+
+function makeKeyEvent(key: string): KeyEvent {
+    return { key, ctrl: false, alt: false, shift: false } as KeyEvent;
+}
 
 function makeAccordion(
     sections: AccordionSection[] = SECTIONS,
@@ -176,54 +181,63 @@ describe('Accordion', () => {
             accordion.close(0);
             expect(onToggle).toHaveBeenCalledWith(0, false);
         });
+
+        it('fires onToggle for implicitly closed section in single mode', () => {
+            const onToggle = vi.fn();
+            const accordion = makeAccordion(SECTIONS, { onToggle });
+            // section 0 is open by default; opening section 1 should close section 0
+            accordion.open(1);
+            expect(onToggle).toHaveBeenCalledWith(0, false);
+            expect(onToggle).toHaveBeenCalledWith(1, true);
+        });
     });
 
     describe('5. Keyboard navigation', () => {
         it('enter key toggles focused section', () => {
             const accordion = makeAccordion();
             expect(accordion.isOpen(0)).toBe(true);
-            accordion.handleKey({ key: 'enter', ctrl: false, alt: false } as any);
+            accordion.handleKey(makeKeyEvent('enter'));
             expect(accordion.isOpen(0)).toBe(false);
         });
 
         it('space key toggles focused section', () => {
             const accordion = makeAccordion();
-            accordion.handleKey({ key: 'space', ctrl: false, alt: false } as any);
+            accordion.handleKey(makeKeyEvent('space'));
             expect(accordion.isOpen(0)).toBe(false);
         });
 
         it('down key moves focus to next section', () => {
             const accordion = makeAccordion();
             expect(accordion.getFocusedIndex()).toBe(0);
-            accordion.handleKey({ key: 'down', ctrl: false, alt: false } as any);
+            accordion.handleKey(makeKeyEvent('down'));
             expect(accordion.getFocusedIndex()).toBe(1);
         });
 
         it('up key moves focus to previous section', () => {
             const accordion = makeAccordion();
-            accordion.handleKey({ key: 'down', ctrl: false, alt: false } as any);
-            accordion.handleKey({ key: 'up', ctrl: false, alt: false } as any);
+            accordion.handleKey(makeKeyEvent('down'));
+            accordion.handleKey(makeKeyEvent('up'));
             expect(accordion.getFocusedIndex()).toBe(0);
         });
 
         it('up key does not go below 0', () => {
             const accordion = makeAccordion();
-            accordion.handleKey({ key: 'up', ctrl: false, alt: false } as any);
+            accordion.handleKey(makeKeyEvent('up'));
             expect(accordion.getFocusedIndex()).toBe(0);
         });
 
         it('down key does not exceed last index', () => {
             const accordion = makeAccordion();
-            accordion.handleKey({ key: 'down', ctrl: false, alt: false } as any);
-            accordion.handleKey({ key: 'down', ctrl: false, alt: false } as any);
-            accordion.handleKey({ key: 'down', ctrl: false, alt: false } as any);
+            accordion.handleKey(makeKeyEvent('down'));
+            accordion.handleKey(makeKeyEvent('down'));
+            accordion.handleKey(makeKeyEvent('down'));
             expect(accordion.getFocusedIndex()).toBe(2);
         });
 
         it('other keys are ignored', () => {
             const accordion = makeAccordion();
             const before = accordion.getFocusedIndex();
-            accordion.handleKey({ key: 'a', ctrl: false, alt: false } as any);
+            accordion.handleKey(makeKeyEvent('a'));
             expect(accordion.getFocusedIndex()).toBe(before);
         });
     });
