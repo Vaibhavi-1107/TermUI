@@ -93,7 +93,13 @@ export class Accordion extends Widget {
     open(index: number): void {
         if (index < 0 || index >= this._sections.length) return;
         if (this._openSet.has(index)) return;
-        if (!this._multiple) this._openSet.clear();
+        if (!this._multiple) {
+            // Fire onToggle for all sections being implicitly closed
+            for (const idx of this._openSet) {
+                this._onToggle?.(idx, false);
+            }
+            this._openSet.clear();
+        }
         this._openSet.add(index);
         this._updateHeight();
         this._onToggle?.(index, true);

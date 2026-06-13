@@ -9,6 +9,7 @@ import {
     type Color,
     styleToCellAttrs,
     stringWidth,
+    truncate,
     caps,
 } from '@termuijs/core';
 import { Widget } from '../base/Widget.js';
@@ -63,7 +64,8 @@ export class Stepper extends Widget {
         opts: StepperOptions = {},
     ) {
         super(style);
-        this._steps = steps;
+        // Clone steps to prevent external mutation bypassing markDirty()
+        this._steps = steps.map(s => ({ ...s }));
         this._orientation = opts.orientation ?? 'horizontal';
         this._activeColor = opts.activeColor ?? { type: 'named', name: 'cyan' };
         this._completedColor = opts.completedColor ?? { type: 'named', name: 'green' };
@@ -72,15 +74,15 @@ export class Stepper extends Widget {
 
     // ── Public API ──────────────────────────────────────────────────────
 
-    /** Replace all steps. */
+    /** Replace all steps. Clones input to prevent external mutation. */
     setSteps(steps: StepperStep[]): void {
-        this._steps = steps;
+        this._steps = steps.map(s => ({ ...s }));
         this.markDirty();
     }
 
-    /** Get current steps. */
+    /** Get current steps. Returns copies to prevent external mutation. */
     getSteps(): StepperStep[] {
-        return this._steps;
+        return this._steps.map(s => ({ ...s }));
     }
 
     /** Update the status of a single step by index. */
@@ -184,9 +186,9 @@ export class Stepper extends Widget {
             const status = step.status ?? 'pending';
             const { icon, color, bold, dim } = this._stepStyle(status);
 
-            // Icon + label row
+            // Icon + label row — use truncate for correct terminal cell width clipping
             const line = icon + ' ' + step.label;
-            screen.writeString(x, y + row, line.slice(0, width), {
+            screen.writeString(x, y + row, truncate(line, width), {
                 ...attrs,
                 fg: color,
                 bold,
