@@ -51,7 +51,6 @@ export type { SliderOptions } from "./input/Slider.js";
 export { RangeInput } from "./input/RangeInput.js";
 export type { RangeInputOptions } from "./input/RangeInput.js";
 export { TextInput } from './input/TextInput.js';
-export type { TextInputProps } from './input/TextInput.js';
 export { Knob } from "./input/Knob.js";
 export type { KnobOptions } from "./input/Knob.js";
 export { PinInput } from "./input/PinInput.js";
@@ -262,4 +261,3 @@ export type {
     ProgressTask,
 } from './feedback/Progress.js';
 export * from './display/Highlight.js';
-export type { TextInputProps } from './input/TextInput.js';
