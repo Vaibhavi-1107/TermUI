@@ -150,13 +150,6 @@ export interface StoreOptions<T> {
     persist?: PersistOptions;
 }
 
-// Using any for logger middleware because it's a debug utility that needs to work with any state type
-export const logger: Middleware<any> = (prevState, update, next) => {
-    // console.log is forbidden in TermUI source files.
-    // To debug state changes, write to a file instead.
-    const nextState = next(update);
-};
-
 export interface Computed<U> {
     /** Get the current memoized derived value */
     get(): U;

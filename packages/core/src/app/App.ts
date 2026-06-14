@@ -403,19 +403,7 @@ export class App {
                     for (const item of this._insertBefore) {
                         this.terminal.write(item.text + '\n');
                     }
-                    try {
-                        // eslint-disable-next-line @typescript-eslint/no-var-requires
-                        const mod = require('../inline-viewport.js');
-                        const renderInlineToTerminal = mod.renderInlineToTerminal ?? mod.default?.renderInlineToTerminal;
-                        if (typeof renderInlineToTerminal === 'function') {
-                            const writer = (this.terminal && typeof (this.terminal as any).write === 'function')
-                                ? (this.terminal as any)
-                                : { write: (s: string) => (this.terminal as any).stdout.write(s) };
-                            renderInlineToTerminal(writer, this.screen as any, this._options.inlineRows ?? 0);
-                        }
-                    } catch (_e) {
-                        // Fallback: write nothing
-                    }
+                    renderInlineToTerminal(this.terminal, this.screen as any, this._options.inlineRows ?? 0);
                 } else {
                     this.renderer.requestFrame();
                 }
