@@ -70,3 +70,7 @@ export { services } from './services.js';
 export type { ServiceInfo } from './services.js';
 export { useServiceHealth } from './hooks/useServiceHealth.js';
 export type { UseServiceHealthResult } from './hooks/useServiceHealth.js';
+export { database } from './database.js';
+export type { DatabaseConfig, DatabaseHealth } from './database.js';
+export { useDatabaseHealth } from './hooks/useDatabaseHealth.js';
+export type { UseDatabaseHealthResult } from './hooks/useDatabaseHealth.js';
