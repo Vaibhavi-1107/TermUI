@@ -56,6 +56,7 @@ export interface TableProps {
  * - External state via `state` prop and `useTableState` hook
  */
 export class Table extends Widget {
+    focusable = true;
     protected _columns: TableColumn[];
     protected _rows: TableRow[];
     protected _showHeader: boolean;
