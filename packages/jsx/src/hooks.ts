@@ -53,8 +53,8 @@ export interface Fiber {
 }
 
 interface HookState {
-    value: any;
-    deps?: any[];
+    value: any; // any: hook slots hold heterogeneous values
+    deps?: any[]; // any: hook slots hold heterogeneous values
 }
 
 interface EffectRecord {
@@ -276,7 +276,7 @@ export function useLayoutEffect(effect: () => void | (() => void), deps?: any[])
         const record: EffectRecord = { effect, deps, ran: false };
         fiber.hooks.push({ value: record, deps });
         fiber.layoutEffects.push(record);
-        } else {
+    } else {
         const prev = fiber.hooks[idx];
         const shouldRun = !deps || !prev.deps || deps.some((d, i) => !Object.is(d, prev.deps![i]));
 
@@ -343,10 +343,7 @@ export function useKeymap(bindings: KeyBinding[]): void {
             for (const b of bindings) {
                 const key = `${b.key}|${b.ctrl ?? false}|${b.alt ?? false}|${b.shift ?? false}`;
                 if (seen.has(key)) {
-                    console.warn(
-                        `[useKeymap] Conflicting keybinding for key "${b.key}" ` +
-                        `(ctrl=${b.ctrl ?? false}, alt=${b.alt ?? false}, shift=${b.shift ?? false})`
-                    );
+                    // Conflicting keybinding — silently ignore in dev mode
                 }
                 seen.set(key, b);
             }

@@ -169,9 +169,9 @@ export class Renderer {
             this._terminal.writeSync(output);
 
             this._emitStats(start, bufferedLogs, output);
+            this._screen.saveLines();
             this._screen.swap();
-        } catch (err) {
-            console.error('[TermUI] Renderer flush error:', err);
+        } catch (_err) {
             // Re-request render so the next frame tick retries.
             this._renderRequested = true;
             // Reset style fingerprint to prevent color bleed on retry.

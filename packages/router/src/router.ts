@@ -324,8 +324,6 @@ export class Router {
     private _applyInitialPathIfPending(): void {
         if (!this._pendingInitialPath || this._routes.length === 0) return;
         const path = this._pendingInitialPath;
-        const match = matchRoute(path, this._routes);
-        if (!match) return;
         this._pendingInitialPath = null;
         this.push(path);
     }

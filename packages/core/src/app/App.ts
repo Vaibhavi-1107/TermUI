@@ -86,7 +86,7 @@ export class App {
     private _unsubSigTerm: (() => void) | null = null;
     private _unsubUncaughtException: (() => void) | null = null;
     private _unsubUnhandledRejection: (() => void) | null = null;
-    private _widgetById = new Map<string, any>();
+    private _widgetById = new Map<string, any>(); // any: Widget shape varies; narrowed at retrieval
     private _pendingFocusState = new Map<string, boolean>();
 
     private _consecutiveRenderFailures = 0;
@@ -173,7 +173,7 @@ export class App {
             this.screen.invalidate();
             this.layers.resize(cols, rows);
             this.events.emit('resize', { cols, rows });
-            (this._rootWidget as any).markDirty?.();
+            (this._rootWidget as any).markDirty?.(); // as any: RootWidget.markDirty may be absent in some configs
             this.requestRender();
         });
 
@@ -248,7 +248,7 @@ export class App {
         process.on('uncaughtException', onUncaughtException);
         this._unsubUncaughtException = () => process.off('uncaughtException', onUncaughtException);
 
-        const onUnhandledRejection = (reason: any) => {
+        const onUnhandledRejection = (reason: any) => { // any: Node unhandledRejection passes unknown reason
             this.renderer.hook.stop();
             this.renderer.hook.writeRaw(this.renderer.hook.flush());
             this.renderer.hook.writeRaw(`Unhandled rejection: ${reason}\n`);
@@ -264,7 +264,7 @@ export class App {
 
         // Mount root widget
         this._rootWidget.mount?.();
-        this.events.emit('mount', undefined as any);
+        this.events.emit('mount', undefined as any); // as any: EventEmitter generic requires a value; payload is intentionally void
 
         // Initial render — invalidate front buffer to force full redraw
         this.screen.invalidate();
@@ -284,7 +284,7 @@ export class App {
         this._mounted = false;
 
         this._rootWidget.unmount?.();
-        this.events.emit('unmount', undefined as any);
+        this.events.emit('unmount', undefined as any); // as any: EventEmitter generic requires a value; payload is intentionally void
 
         this._unsubSigInt?.();
         this._unsubSigInt = null;
@@ -403,19 +403,7 @@ export class App {
                     for (const item of this._insertBefore) {
                         this.terminal.write(item.text + '\n');
                     }
-                    try {
-                        // eslint-disable-next-line @typescript-eslint/no-var-requires
-                        const mod = require('../inline-viewport.js');
-                        const renderInlineToTerminal = mod.renderInlineToTerminal ?? mod.default?.renderInlineToTerminal;
-                        if (typeof renderInlineToTerminal === 'function') {
-                            const writer = (this.terminal && typeof (this.terminal as any).write === 'function')
-                                ? (this.terminal as any)
-                                : { write: (s: string) => (this.terminal as any).stdout.write(s) };
-                            renderInlineToTerminal(writer, this.screen as any, this._options.inlineRows ?? 0);
-                        }
-                    } catch (_e) {
-                        // Fallback: write nothing
-                    }
+                    renderInlineToTerminal(this.terminal, this.screen as any, this._options.inlineRows ?? 0);
                 } else {
                     this.renderer.requestFrame();
                 }
@@ -495,7 +483,7 @@ export class App {
         const widget = this._widgetById.get(widgetId);
         if (!widget) return chain;
 
-        let current: any = widget;
+        let current: any = widget; // any: WidgetNode shape varies; no shared interface at traversal level
         while (current) {
             if (current.events) {
                 chain.push(current);
@@ -508,14 +496,14 @@ export class App {
     /**
      * Rebuild the widget ID cache by walking the entire widget tree.
      */
-    private _buildWidgetMap(root: any): void {
+    private _buildWidgetMap(root: any): void { // any: Widget tree shape not statically known at traversal
         this._widgetById.clear();
         this._walkWidget(root);
         // Pending focus events are safe to apply once widget IDs are registered.
         this._applyPendingFocusState();
     }
 
-    private _walkWidget(widget: any): void {
+    private _walkWidget(widget: any): void { // any: Widget tree shape not statically known at traversal
         if (!widget) return;
         if (widget.id) {
             this._widgetById.set(widget.id, widget);

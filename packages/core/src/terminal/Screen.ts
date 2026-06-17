@@ -433,23 +433,23 @@ export class Screen {
     }
 
     /**
- * Export current screen as ANSI snapshot text.
- */
-exportANSI(): string {
-    const lines: string[] = [];
+     * Export current screen as ANSI snapshot text.
+     */
+    exportANSI(): string {
+        const lines: string[] = [];
 
-    for (let r = 0; r < this._rows; r++) {
-        lines.push(this.getLine(r));
+        for (let r = 0; r < this._rows; r++) {
+            lines.push(this.getLine(r));
+        }
+
+        return lines.join('\n');
     }
 
-    return lines.join('\n');
-}
-
-/**
- * Export current screen as SVG.
- */
-exportSVG(): string {
-    return `
+    /**
+     * Export current screen as SVG.
+     */
+    exportSVG(): string {
+        return `
 <svg xmlns="http://www.w3.org/2000/svg"
      width="${this._cols * 8}"
      height="${this._rows * 16}">
@@ -457,7 +457,7 @@ exportSVG(): string {
         Terminal Export
     </text>
 </svg>`;
-}
+    }
 
     private _createGrid(cols: number, rows: number): Cell[][] {
         const grid: Cell[][] = [];

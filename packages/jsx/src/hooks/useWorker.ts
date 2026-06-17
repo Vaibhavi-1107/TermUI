@@ -9,6 +9,12 @@ export interface UseWorkerResult<TArgs extends unknown[], TResult> {
     readonly status: 'idle' | 'running';
 }
 
+/**
+ * Module-level map of group name → AbortController.
+ * Group names must be stable/static across renders (not generated dynamically per render)
+ * because this map is never cleaned up when a group becomes empty.
+ * For temporary or dynamic groups, create an AbortController inside the component instead.
+ */
 const groupControllers = new Map<string, AbortController>();
 
 export function useWorker<TArgs extends unknown[], TResult>(

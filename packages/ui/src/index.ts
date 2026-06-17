@@ -145,6 +145,7 @@ export { SegmentedControl } from './SegmentedControl.js';
 export type { SegmentedControlOptions } from './SegmentedControl.js';
 
 export { SearchableSelect } from './SearchableSelect.js';
+export type { SearchableSelectOption, SearchableSelectOptions } from './SearchableSelect.js';
 export { Autocomplete, type AutocompleteOptions } from './Autocomplete.js';
 export { Toggle } from './Toggle.js';
 export type { ToggleOptions } from './Toggle.js';
@@ -175,6 +176,8 @@ export type { TextAreaOptions } from './TextArea.js';
 export { Stepper } from './Stepper.js';
 export type { StepperOptions } from './Stepper.js';
 
+export { Announcer, announcer } from './Announcer.js';
+export type { AnnouncerOptions, Politeness } from './Announcer.js';
 export { ShortcutHelpOverlay } from './components/ShortcutHelpOverlay.js';
 export type { Shortcut, ShortcutHelpOverlayProps } from './components/ShortcutHelpOverlay.js';
 
@@ -223,6 +226,9 @@ export type { PopoverOptions, PopoverPlacement } from './Popover.js'
 
 export { FormBuilder, useForm } from './components/FormBuilder.js';
 export type { FormBuilderProps } from './components/FormBuilder.js';
+
+export { SearchInput } from './SearchInput.js';
+export type { SearchInputOptions } from './SearchInput.js';
 
 // -- External Theme / Stylesheet Engine --
 export * from '@termuijs/tss';

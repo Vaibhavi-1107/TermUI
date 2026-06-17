@@ -26,8 +26,8 @@ import { Suspense } from './Suspense.js';
 
 interface ComponentInstance {
     fiber: Fiber;
-    component: FC<any>;
-    props: Record<string, any>;
+    component: FC<any>; // any: per-instance slot; specific type not knowable at interface definition
+    props: Record<string, any>; // any: per-instance slot; specific type not knowable at interface definition
     children: VNode[];
     widget: Widget;
     childInstances: ComponentInstance[];
@@ -236,7 +236,7 @@ function extractStyle(props: Record<string, any>): Partial<Style> {
 }
 
 /** Parse a color prop — accepts a named color string, hex string, or Color object */
-function parseColorProp(value: any): Color | undefined {
+function parseColorProp(value: any): Color | undefined { // any: JSX prop values are untyped at this call site
     if (!value) return undefined;
     if (typeof value === 'string') {
         if (value.startsWith('#')) return parseColor(value);
@@ -448,27 +448,26 @@ function renderComponent(
     let vnode: VNode | Widget;
     try {
         vnode = component({ ...props, children: children.length === 1 ? children[0] : children });
-        } catch (err) {
-            clearCurrentFiber();
-            _parentFiber = prevParent;
+    } catch (err) {
+        clearCurrentFiber();
+        _parentFiber = prevParent;
 
-            if (err instanceof Promise) {
-                throw err;
-            }
-
-            const error = err instanceof Error ? err : new Error(String(err));
-            const boundary = findErrorBoundary(fiber);
-            if (boundary?.errorFallback) {
-                destroyFiber(fiber);
-                _parentFiber = boundary;
-                const fallbackVNode = boundary.errorFallback(error);
-                return reconcile(fallbackVNode);
-            }
-            // No boundary found — destroy fiber and show default error widget
-            destroyFiber(fiber);
-            console.error('[TermUI] Unhandled component error:', error);
-            return reconcile(defaultErrorVNode(error));
+        if (err instanceof Promise) {
+            throw err;
         }
+
+        const error = err instanceof Error ? err : new Error(String(err));
+        const boundary = findErrorBoundary(fiber);
+        if (boundary?.errorFallback) {
+            destroyFiber(fiber);
+            _parentFiber = boundary;
+            const fallbackVNode = boundary.errorFallback(error);
+            return reconcile(fallbackVNode);
+        }
+        // No boundary found — destroy fiber and show default error widget
+        destroyFiber(fiber);
+        return reconcile(defaultErrorVNode(error));
+    }
 
     clearCurrentFiber();
 
@@ -528,11 +527,22 @@ function renderComponent(
  */
 /** @internal exposed for testing */
 export function _pruneInstancesForWidget(widget: Widget): void {
-    const instance = _instanceMap.get(widget);
-    if (instance && _fiberToWidgetMap.get(instance.fiber) === widget) {
-        _fiberToWidgetMap.delete(instance.fiber);
+    const inst = _instanceMap.get(widget);
+    if (inst && _fiberToWidgetMap.get(inst.fiber) === widget) {
+        _fiberToWidgetMap.delete(inst.fiber);
     }
     _instanceMap.delete(widget);
+
+    // Recursively clean up portal children registered on the fiber
+    // so they are removed from their target widgets when the portal owner is destroyed.
+    if (inst?.fiber?.portalChildren) {
+        for (const entry of inst.fiber.portalChildren) {
+            for (const portalWidget of entry.widgets) {
+                _pruneInstancesForWidget(portalWidget);
+            }
+        }
+        inst.fiber.portalChildren = undefined;
+    }
 
     const children = widget.children;
     if (Array.isArray(children)) {
@@ -581,7 +591,6 @@ export function reRenderComponent(instance: ComponentInstance): Widget {
         destroyFiber(fiber);
         _pruneInstancesForWidget(instance.widget);
         invalidateLayout(instance.widget.getLayoutNode());
-        console.error('[TermUI] Unhandled component error:', err);
         return reconcile(defaultErrorVNode(err));
     }
 

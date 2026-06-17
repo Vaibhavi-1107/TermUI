@@ -150,13 +150,6 @@ export interface StoreOptions<T> {
     persist?: PersistOptions;
 }
 
-// Using any for logger middleware because it's a debug utility that needs to work with any state type
-export const logger: Middleware<any> = (prevState, update, next) => {
-    // console.log is forbidden in TermUI source files.
-    // To debug state changes, write to a file instead.
-    const nextState = next(update);
-};
-
 export interface Computed<U> {
     /** Get the current memoized derived value */
     get(): U;
@@ -173,6 +166,8 @@ export interface Store<T> {
     setState: SetState<T>;
     /** Subscribe to state changes */
     subscribe(listener: Listener<T>): () => void;
+    /** Subscribe once — listener fires on the next change and is immediately unsubscribed */
+    subscribeOnce(listener: Listener<T>): () => void;
     /** Destroy the store and remove all listeners */
     destroy(): void;
     /** Create a memoized selector — subscribers are notified only when the derived value changes */
@@ -232,8 +227,7 @@ export function createStore<T extends object>(
 ): UseStore<T>;
 
 export function createStore<T extends object>(
-    // Using any to accept both StateCreator<T> function and plain T object (overloaded below)
-    creator: any,
+    creator: any, // overloaded: accepts StateCreator<T> function or plain T object
     options?: StoreOptions<T>
 ): UseStore<T> {
     const listeners = new Set<Listener<T>>();
@@ -269,8 +263,7 @@ export function createStore<T extends object>(
                 if (!fs.existsSync(dir)) {
                     fs.mkdirSync(dir, { recursive: true });
                 }
-                // Using any because we filter out functions and only persist serializable data
-                const dataToSave: any = {};
+                const dataToSave: Record<string, unknown> = {};
                 for (const [key, val] of Object.entries(state)) {
                     if (typeof val !== 'function') {
                         dataToSave[key] = val;
@@ -360,6 +353,25 @@ export function createStore<T extends object>(
         };
     };
 
+    const subscribeOnce = (listener: Listener<T>): (() => void) => {
+        let unsub: (() => void) | null = null;
+        const wrapper: Listener<T> = (state, prevState) => {
+            const currentUnsub = unsub;
+            if (currentUnsub) {
+                currentUnsub();
+                unsub = null;
+            }
+            listener(state, prevState);
+        };
+        unsub = subscribe(wrapper);
+        return () => {
+            if (unsub) {
+                unsub();
+                unsub = null;
+            }
+        };
+    };
+
     const destroy = (): void => {
         listeners.clear();
         if (writeTimeout) {
@@ -434,7 +446,7 @@ export function createStore<T extends object>(
         };
     };
 
-    const store: Store<T> = { getState, setState, subscribe, destroy, computed, reset, getInitialState };
+    const store: Store<T> = { getState, setState, subscribe, subscribeOnce, destroy, computed, reset, getInitialState };
 
     // Create the hook function
     function useStore(): T;
@@ -448,9 +460,13 @@ export function createStore<T extends object>(
         selectorRef.current = select;
 
         useEffect(() => {
+            let prevSelected = selectorRef.current(store.getState());
             const unsubscribe = store.subscribe((newState) => {
                 const newSelected = selectorRef.current(newState);
-                setSelectedState(newSelected);
+                if (!Object.is(prevSelected, newSelected)) {
+                    prevSelected = newSelected;
+                    setSelectedState(newSelected);
+                }
             });
             return unsubscribe;
         }, []);
@@ -463,6 +479,7 @@ export function createStore<T extends object>(
     (useStore as any).getState = getState;
     (useStore as any).setState = setState;
     (useStore as any).subscribe = subscribe;
+    (useStore as any).subscribeOnce = subscribeOnce;
     (useStore as any).destroy = destroy;
     (useStore as any).computed = computed;
     (useStore as any).reset = reset;
@@ -479,6 +496,7 @@ export interface UseStore<T> {
     getState: GetState<T>;
     setState: SetState<T>;
     subscribe(listener: Listener<T>): () => void;
+    subscribeOnce(listener: Listener<T>): () => void;
     destroy(): void;
     computed<U>(selector: Selector<T, U>): Computed<U>;
     reset(): void;

@@ -428,12 +428,13 @@ export class FocusManager {
     private _changeFocus(newIndex: number): void {
         const oldId = this.currentId;
         if (oldId) {
-            this._events.emit('blur', { targetId: oldId, type: 'blur' });
+            this._events.emit('blur', { targetId: oldId, type: 'blur', epoch: this._epoch++ });
         }
         this._currentIndex = newIndex;
         this._events.emit('focus', {
             targetId: this._focusables[newIndex].id,
             type: 'focus',
+            epoch: this._epoch++,
         });
     }
 }

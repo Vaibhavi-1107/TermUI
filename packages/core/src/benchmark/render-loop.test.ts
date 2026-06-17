@@ -6,8 +6,8 @@ describe('render-loop benchmark', () => {
     });
 
     it('runs the benchmark and outputs JSON results', async () => {
-        const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-        
+        const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
         // Stateful mock of performance.now to simulate fast passage of time
         let mockTime = 0;
         vi.spyOn(performance, 'now').mockImplementation(() => {
@@ -18,12 +18,12 @@ describe('render-loop benchmark', () => {
         // Since it executes immediately upon import, we dynamically import it here
         await import('./render-loop.js');
 
-        // Verify console.log was called
-        expect(consoleSpy).toHaveBeenCalled();
+        // Verify process.stdout.write was called
+        expect(writeSpy).toHaveBeenCalled();
 
         // Find the BENCH_RESULT_JSON line
-        const logs = consoleSpy.mock.calls.map(call => call[0] as string);
-        const jsonLine = logs.find(log => log.startsWith('BENCH_RESULT_JSON:'));
+        const lines = writeSpy.mock.calls.map(call => call[0] as string);
+        const jsonLine = lines.find(line => line.startsWith('BENCH_RESULT_JSON:'));
         expect(jsonLine).toBeDefined();
 
         const jsonStr = jsonLine!.substring('BENCH_RESULT_JSON:'.length).trim();
