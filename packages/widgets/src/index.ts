@@ -46,6 +46,8 @@ export { CommandPalette } from './input/CommandPalette.js';
 export type { Command, CommandPaletteOptions } from './input/CommandPalette.js';
 export { Button } from './input/Button.js';
 export type { ButtonOptions, ButtonVariant } from './input/Button.js';
+export { Checkbox } from './input/Checkbox.js';
+export type { CheckboxOptions } from './input/Checkbox.js';
 
 export { Slider } from "./input/Slider.js";
 export type { SliderOptions } from "./input/Slider.js";
