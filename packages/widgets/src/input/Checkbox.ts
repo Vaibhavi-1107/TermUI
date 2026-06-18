@@ -9,6 +9,7 @@ import {
     type Color,
     type KeyEvent,
     stringWidth,
+    truncate,
     caps,
 } from '@termuijs/core';
 import { Widget } from '../base/Widget.js';
@@ -156,7 +157,7 @@ export class Checkbox extends Widget {
 
         if (stringWidth(fullLine) > width) {
             // Not enough room — render truncated
-            screen.writeString(x, y, fullLine.slice(0, width), { fg: labelColor });
+            screen.writeString(x, y, truncate(fullLine, width), { fg: labelColor });
             return;
         }
 
